@@ -71,6 +71,14 @@ import sun.security.util.SecurityConstants;
 public class Executors {
 
     /**
+     * 了解下工作顺序
+     * 添加任务
+     * 当运行中的线程少于 corePoolSize  则创建新线程
+     * 如果 超过 corePoolSize 则去排队等待执行
+     * 如果 请求不能排队 则创建新的线程 当 线程超过总数 这个情况 任务被拒绝
+     *
+     */
+    /**
      * Creates a thread pool that reuses a fixed number of threads
      * operating off a shared unbounded queue.  At any point, at most
      * {@code nThreads} threads will be active processing tasks.

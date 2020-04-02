@@ -206,6 +206,19 @@ public interface BlockingQueue<E> extends Queue<E> {
      * generally preferable to {@link #add}, which can fail to insert an
      * element only by throwing an exception.
      *
+     * 如果可能，将指定的元素插入此队列
+     *
+     * *所以在不违反容量限制的情况下，立即返回
+     *
+     * *{@code true}成功时，{@code false}如果当前没有空间
+     *
+     * *可用。当使用容量受限队列时，此方法是
+     *
+     * *通常比{@link#add}更可取，后者可能无法插入
+     *
+     * *仅通过引发异常。
+     *
+     *   报错
      * @param e the element to add
      * @return {@code true} if the element was added to this queue, else
      *         {@code false}
