@@ -85,7 +85,7 @@ public class Executors {
      * @return the newly created thread pool
      * @throws IllegalArgumentException if {@code nThreads <= 0}
      */
-    //创建固定大小 的线程池
+    //创建固定大小 的线程池  队列的长度都为做限制
     public static ExecutorService newFixedThreadPool(int nThreads) {
         return new ThreadPoolExecutor(nThreads, nThreads,
                                       0L, TimeUnit.MILLISECONDS,
@@ -186,6 +186,7 @@ public class Executors {
      */
     // 创建一个执行器，使用一个单一的工作线程操作关闭一个无限的队列。
     //FinalizableDelegatedExecutorService extends DelegatedExecutorService
+    //DelegatedExecutorService 被阉割的 ExecutorService 暴露的方法少
     //Finalizable 存在了一个shutdown 可用不用手动
     public static ExecutorService newSingleThreadExecutor() {
         return new FinalizableDelegatedExecutorService
@@ -340,6 +341,7 @@ public class Executors {
      * @return an {@code ExecutorService} instance
      * @throws NullPointerException if executor null
      */
+    //屏蔽一些调用方法
     public static ExecutorService unconfigurableExecutorService(ExecutorService executor) {
         if (executor == null)
             throw new NullPointerException();
@@ -356,6 +358,7 @@ public class Executors {
      * @return a {@code ScheduledExecutorService} instance
      * @throws NullPointerException if executor null
      */
+    //延迟 周期线程池
     public static ScheduledExecutorService unconfigurableScheduledExecutorService(ScheduledExecutorService executor) {
         if (executor == null)
             throw new NullPointerException();
@@ -378,6 +381,7 @@ public class Executors {
      * of the thread created by this factory.
      * @return a thread factory
      */
+    //创建线程工厂  返回默认工厂
     public static ThreadFactory defaultThreadFactory() {
         return new DefaultThreadFactory();
     }
@@ -415,6 +419,7 @@ public class Executors {
      * context does not have permission to both get and set context
      * class loader
      */
+    //带有访问权限的 线程工厂
     public static ThreadFactory privilegedThreadFactory() {
         return new PrivilegedThreadFactory();
     }
@@ -430,6 +435,7 @@ public class Executors {
      * @return a callable object
      * @throws NullPointerException if task null
      */
+    //运行方法结果返回
     public static <T> Callable<T> callable(Runnable task, T result) {
         if (task == null)
             throw new NullPointerException();
@@ -443,6 +449,7 @@ public class Executors {
      * @return a callable object
      * @throws NullPointerException if task null
      */
+    //执行任务，无返回
     public static Callable<Object> callable(Runnable task) {
         if (task == null)
             throw new NullPointerException();
@@ -456,6 +463,7 @@ public class Executors {
      * @return a callable object
      * @throws NullPointerException if action null
      */
+    //执行访问权限的任务
     public static Callable<Object> callable(final PrivilegedAction<?> action) {
         if (action == null)
             throw new NullPointerException();
@@ -471,6 +479,7 @@ public class Executors {
      * @return a callable object
      * @throws NullPointerException if action null
      */
+    //运行给定权限的任 给定返回
     public static Callable<Object> callable(final PrivilegedExceptionAction<?> action) {
         if (action == null)
             throw new NullPointerException();
@@ -492,6 +501,7 @@ public class Executors {
      * @return a callable object
      * @throws NullPointerException if callable null
      */
+    //带有上下文权限的运行
     public static <T> Callable<T> privilegedCallable(Callable<T> callable) {
         if (callable == null)
             throw new NullPointerException();
@@ -518,6 +528,17 @@ public class Executors {
      * context does not have permission to both set and get context
      * class loader
      */
+    /**
+     * 官方文档翻译
+     * 返回一个对象， Callable，时称，当前上下文的访问控制下执行给定的 callable，与当前上下文类加载器的上下文类加载器。
+     * 通常这种方法应该被调用在一个 AccessController.doPrivileged行动创造可以调用的说明会，
+     * 如果可能的话，选择权限设置保持在作用下执行；或如果不可能，把相关的 AccessControlException。
+     * @param callable
+     * @param <T>
+     * @return
+     */
+    //控件上下文，当前上下文类加载器作为
+            //上下文类加载器
     public static <T> Callable<T> privilegedCallableUsingCurrentClassLoader(Callable<T> callable) {
         if (callable == null)
             throw new NullPointerException();
@@ -528,6 +549,7 @@ public class Executors {
 
     /**
      * A callable that runs given task and returns given result
+     * 运行给定任务并返回给定结果的可调用函数
      */
     static final class RunnableAdapter<T> implements Callable<T> {
         final Runnable task;
@@ -544,6 +566,8 @@ public class Executors {
 
     /**
      * A callable that runs under established access control settings
+     * 在已建立的访问控制设置下运行的可调用
+     * 根据上下文控制访问权限
      */
     static final class PrivilegedCallable<T> implements Callable<T> {
         private final Callable<T> task;
@@ -571,6 +595,8 @@ public class Executors {
     /**
      * A callable that runs under established access control settings and
      * current ClassLoader
+     * 在已建立的访问控制设置和当前类加载器下运行的可调用
+     * 通过类加载器控制访问权限
      */
     static final class PrivilegedCallableUsingCurrentClassLoader<T> implements Callable<T> {
         private final Callable<T> task;
@@ -596,7 +622,7 @@ public class Executors {
 
         public T call() throws Exception {
             try {
-                return AccessController.doPrivileged(
+                return AccessController.doPrivileged( //native
                     new PrivilegedExceptionAction<T>() {
                         public T run() throws Exception {
                             Thread t = Thread.currentThread();
@@ -629,6 +655,7 @@ public class Executors {
         private final String namePrefix;
 
         DefaultThreadFactory() {
+            //安全管理器
             SecurityManager s = System.getSecurityManager();
             group = (s != null) ? s.getThreadGroup() :
                                   Thread.currentThread().getThreadGroup();
