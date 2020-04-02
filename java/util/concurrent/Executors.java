@@ -85,6 +85,7 @@ public class Executors {
      * @return the newly created thread pool
      * @throws IllegalArgumentException if {@code nThreads <= 0}
      */
+    //创建固定大小 的线程池
     public static ExecutorService newFixedThreadPool(int nThreads) {
         return new ThreadPoolExecutor(nThreads, nThreads,
                                       0L, TimeUnit.MILLISECONDS,
@@ -101,11 +102,26 @@ public class Executors {
      * guarantees about the order in which submitted tasks are
      * executed.
      *
-     * @param parallelism the targeted parallelism level
+     *
+     Creates a thread pool that maintains enough threads to support
+     * the given parallelism level, and may use multiple queues to
+     * reduce contention. The parallelism level corresponds to the
+     * maximum number of threads actively engaged in, or available to
+     * engage in, task processing. The actual number of threads may
+     * grow and shrink dynamically. A work-stealing pool makes no
+     * guarantees about the order in which submitted tasks are
+     * executed.
+     * 创建一个线程池，该线程池维护足够多的线程以支持
+     * 给定的并行级别，可以使用多个队列减少争论。并行级别对应于
+     * 活动参与或可用于的最大线程数从事任务处理。
+     * 实际线程数可能 动态地生长和收缩。
+     * 关于提交任务的顺序的保证执行。
+     * @param parallelism the targeted parallelism level  并行数
      * @return the newly created thread pool
      * @throws IllegalArgumentException if {@code parallelism <= 0}
      * @since 1.8
      */
+    //并行线程池 ？ 参照ForkJoinPool 里面了解
     public static ExecutorService newWorkStealingPool(int parallelism) {
         return new ForkJoinPool
             (parallelism,
@@ -116,7 +132,7 @@ public class Executors {
     /**
      * Creates a work-stealing thread pool using all
      * {@link Runtime#availableProcessors available processors}
-     * as its target parallelism level.
+     * as its target parallelism level.  默认系统 可用处理数？
      * @return the newly created thread pool
      * @see #newWorkStealingPool(int)
      * @since 1.8
@@ -147,6 +163,7 @@ public class Executors {
      * @throws NullPointerException if threadFactory is null
      * @throws IllegalArgumentException if {@code nThreads <= 0}
      */
+    //指定线程数 和线程工厂的 执行器 阻塞队列 LinkedBlockingQueue 了解
     public static ExecutorService newFixedThreadPool(int nThreads, ThreadFactory threadFactory) {
         return new ThreadPoolExecutor(nThreads, nThreads,
                                       0L, TimeUnit.MILLISECONDS,
@@ -167,6 +184,9 @@ public class Executors {
      *
      * @return the newly created single-threaded Executor
      */
+    // 创建一个执行器，使用一个单一的工作线程操作关闭一个无限的队列。
+    //FinalizableDelegatedExecutorService extends DelegatedExecutorService
+    //Finalizable 存在了一个shutdown 可用不用手动
     public static ExecutorService newSingleThreadExecutor() {
         return new FinalizableDelegatedExecutorService
             (new ThreadPoolExecutor(1, 1,
@@ -188,6 +208,7 @@ public class Executors {
      * @return the newly created single-threaded Executor
      * @throws NullPointerException if threadFactory is null
      */
+    // 增加 了线程工厂
     public static ExecutorService newSingleThreadExecutor(ThreadFactory threadFactory) {
         return new FinalizableDelegatedExecutorService
             (new ThreadPoolExecutor(1, 1,
@@ -212,6 +233,9 @@ public class Executors {
      *
      * @return the newly created thread pool
      */
+    //创建一个 无限的 线程池  每个线程 闲置最多存活60S 队列选用 SynchronousQueue
+    // 详解  SynchronousQueue  不阻塞，无边界 先入先出队列TransferQueue 后入先出 栈TransferStack 可选择
+    //默认是 后进先出
     public static ExecutorService newCachedThreadPool() {
         return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                                       60L, TimeUnit.SECONDS,
@@ -227,6 +251,7 @@ public class Executors {
      * @return the newly created thread pool
      * @throws NullPointerException if threadFactory is null
      */
+    //带有线程工厂的 创建
     public static ExecutorService newCachedThreadPool(ThreadFactory threadFactory) {
         return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                                       60L, TimeUnit.SECONDS,
@@ -247,6 +272,7 @@ public class Executors {
      * guaranteed not to be reconfigurable to use additional threads.
      * @return the newly created scheduled executor
      */
+    //延迟线程池 线程数1
     public static ScheduledExecutorService newSingleThreadScheduledExecutor() {
         return new DelegatedScheduledExecutorService
             (new ScheduledThreadPoolExecutor(1));
@@ -268,6 +294,7 @@ public class Executors {
      * @return a newly created scheduled executor
      * @throws NullPointerException if threadFactory is null
      */
+    //延迟执行的线程池  线程数1
     public static ScheduledExecutorService newSingleThreadScheduledExecutor(ThreadFactory threadFactory) {
         return new DelegatedScheduledExecutorService
             (new ScheduledThreadPoolExecutor(1, threadFactory));
@@ -281,6 +308,7 @@ public class Executors {
      * @return a newly created scheduled thread pool
      * @throws IllegalArgumentException if {@code corePoolSize < 0}
      */
+    //延迟 线程池 队列是 DelayedWorkQueue 空闲被回收
     public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize) {
         return new ScheduledThreadPoolExecutor(corePoolSize);
     }
@@ -296,6 +324,7 @@ public class Executors {
      * @throws IllegalArgumentException if {@code corePoolSize < 0}
      * @throws NullPointerException if threadFactory is null
      */
+    //延迟 线程池 队列是 DelayedWorkQueue 空闲被回收
     public static ScheduledExecutorService newScheduledThreadPool(
             int corePoolSize, ThreadFactory threadFactory) {
         return new ScheduledThreadPoolExecutor(corePoolSize, threadFactory);
