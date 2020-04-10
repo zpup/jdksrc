@@ -39,6 +39,7 @@ import sun.misc.Unsafe;
 /**
  * Basic thread blocking primitives for creating locks and other
  * synchronization classes.
+ * 用于创建锁和其他同步类的基本线程阻塞原语。
  *
  * <p>This class associates, with each thread that uses it, a permit
  * (in the sense of the {@link java.util.concurrent.Semaphore
@@ -47,6 +48,13 @@ import sun.misc.Unsafe;
  * it <em>may</em> block.  A call to {@code unpark} makes the permit
  * available, if it was not already available. (Unlike with Semaphores
  * though, permits do not accumulate. There is at most one.)
+ *
+ * 这个类与使用它的每个线程关联一个
+ * （在{@link java.util.concurrent.Semaphore --计数信号量  的意义上）
+ * 信号量}类）。
+ * 对{@code park}的调用将立即返回如果许可证有效，则在过程中使用；否则它可能会阻塞。
+ * 对{@code unpark}的调用允许  如果还不可用，则可以使用。（与信号量不同 不过，许可证不会累积。最多只有一个。）
+
  *
  * <p>Methods {@code park} and {@code unpark} provide efficient
  * means of blocking and unblocking threads that do not encounter the
@@ -62,6 +70,7 @@ import sun.misc.Unsafe;
  * optimization of a "busy wait" that does not waste as much time
  * spinning, but must be paired with an {@code unpark} to be
  * effective.
+ *
  *
  * <p>The three forms of {@code park} each also support a
  * {@code blocker} object parameter. This object is recorded while
@@ -87,6 +96,7 @@ import sun.misc.Unsafe;
  *
  * <p><b>Sample Usage.</b> Here is a sketch of a first-in-first-out
  * non-reentrant lock class:
+ * 先进先出非重入锁类的框架
  *  <pre> {@code
  * class FIFOMutex {
  *   private final AtomicBoolean locked = new AtomicBoolean(false);
@@ -136,6 +146,7 @@ public class LockSupport {
      * @param thread the thread to unpark, or {@code null}, in which case
      *        this operation has no effect
      */
+    //唤醒处于阻塞状态的线程Thread。
     public static void unpark(Thread thread) {
         if (thread != null)
             UNSAFE.unpark(thread);
@@ -171,8 +182,11 @@ public class LockSupport {
      */
     public static void park(Object blocker) {
         Thread t = Thread.currentThread();
+        //记录当前线程等待的对象（阻塞对象）
         setBlocker(t, blocker);
+        //阻塞当前线程；
         UNSAFE.park(false, 0L);
+        //当前线程等待对象置为null。
         setBlocker(t, null);
     }
 
@@ -250,6 +264,7 @@ public class LockSupport {
      *        to wait until
      * @since 1.6
      */
+    //阻塞当前线程直到deadline时间，相同的，也做了阻塞前记录当前线程等待对象的操作
     public static void parkUntil(Object blocker, long deadline) {
         Thread t = Thread.currentThread();
         setBlocker(t, blocker);
@@ -269,6 +284,7 @@ public class LockSupport {
      * @throws NullPointerException if argument is null
      * @since 1.6
      */
+    //线程t中获取它的parkBlocker对象，即返回的是阻塞线程t的Blocker对象
     public static Object getBlocker(Thread t) {
         if (t == null)
             throw new NullPointerException();
@@ -300,6 +316,7 @@ public class LockSupport {
      * the thread to park in the first place. Callers may also determine,
      * for example, the interrupt status of the thread upon return.
      */
+    //阻塞线程 调用native方法阻塞当前线程。
     public static void park() {
         UNSAFE.park(false, 0L);
     }
@@ -333,6 +350,7 @@ public class LockSupport {
      *
      * @param nanos the maximum number of nanoseconds to wait
      */
+    //阻塞线程 纳秒
     public static void parkNanos(long nanos) {
         if (nanos > 0)
             UNSAFE.park(false, nanos);
@@ -368,6 +386,7 @@ public class LockSupport {
      * @param deadline the absolute time, in milliseconds from the Epoch,
      *        to wait until
      */
+    //阻塞当前线程，知道deadline时间（deadline - 毫秒数）。
     public static void parkUntil(long deadline) {
         UNSAFE.park(true, deadline);
     }
@@ -392,7 +411,7 @@ public class LockSupport {
 
     // Hotspot implementation via intrinsics API
     private static final sun.misc.Unsafe UNSAFE;
-    private static final long parkBlockerOffset;
+    private static final long parkBlockerOffset;    //
     private static final long SEED;
     private static final long PROBE;
     private static final long SECONDARY;
