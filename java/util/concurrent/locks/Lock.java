@@ -50,6 +50,10 @@ import java.util.concurrent.TimeUnit;
  * acquired first. However, some locks may allow concurrent access to
  * a shared resource, such as the read lock of a {@link ReadWriteLock}.
  *
+ * 锁是一种通过多个线程控制对共享资源的访问的工具。
+ * 通常，一个锁提供对共享资源的独占访问：在一个时间只有一个线程可以获得锁和所有访问共享资源，需要先获得锁。
+ * 然而，有些锁可以允许并发访问共享资源，如一个ReadWriteLock读锁。
+ *
  * <p>The use of {@code synchronized} methods or statements provides
  * access to the implicit monitor lock associated with every object, but
  * forces all lock acquisition and release to occur in a block-structured way:
@@ -181,6 +185,7 @@ public interface Lock {
      * circumstances and the exception type must be documented by that
      * {@code Lock} implementation.
      */
+    //获取锁。
     void lock();
 
     /**
@@ -229,6 +234,7 @@ public interface Lock {
      *         interrupted while acquiring the lock (and interruption
      *         of lock acquisition is supported)
      */
+    //获取该锁除非当前线程 interrupted。
     void lockInterruptibly() throws InterruptedException;
 
     /**
@@ -258,6 +264,7 @@ public interface Lock {
      * @return {@code true} if the lock was acquired and
      *         {@code false} otherwise
      */
+    //只有在调用时释放该锁，才能获取锁。 尝试获取锁
     boolean tryLock();
 
     /**
@@ -318,6 +325,7 @@ public interface Lock {
      *         while acquiring the lock (and interruption of lock
      *         acquisition is supported)
      */
+    //获取锁，如果它是免费的在给定的等待时间和当前线程没有被 interrupted。
     boolean tryLock(long time, TimeUnit unit) throws InterruptedException;
 
     /**
@@ -332,6 +340,7 @@ public interface Lock {
      * Any restrictions and the exception
      * type must be documented by that {@code Lock} implementation.
      */
+    //释放锁
     void unlock();
 
     /**

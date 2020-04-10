@@ -286,6 +286,7 @@ import sun.misc.Unsafe;
  * @since 1.5
  * @author Doug Lea
  */
+//提供用于实现阻塞锁和同步器框架（信号量、事件等），依靠先入先出（FIFO）等待队列
 public abstract class AbstractQueuedSynchronizer
     extends AbstractOwnableSynchronizer
     implements java.io.Serializable {
@@ -529,6 +530,7 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * The synchronization state.
+     * 原子int
      */
     private volatile int state;
 
@@ -580,15 +582,16 @@ public abstract class AbstractQueuedSynchronizer
      * @param node the node to insert
      * @return node's predecessor
      */
+    //节点node进入队列，采用CAS的方式，返回其前驱
     private Node enq(final Node node) {
         for (;;) {
             Node t = tail;
-            if (t == null) { // Must initialize
-                if (compareAndSetHead(new Node()))
+            if (t == null) { // Must initialize 初始化
+                if (compareAndSetHead(new Node())) //设置头节点
                     tail = head;
-            } else {
-                node.prev = t;
-                if (compareAndSetTail(t, node)) {
+            } else { //不空的队列
+                node.prev = t;  //插入至队尾
+                if (compareAndSetTail(t, node)) { //cas 修改队尾的 node
                     t.next = node;
                     return t;
                 }
@@ -598,13 +601,14 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * Creates and enqueues node for current thread and given mode.
-     *
+     * 将当前线程以mode的方式（EXCLUSIVE或者SHARED）构成新节点并入队，返回这个新节点
      * @param mode Node.EXCLUSIVE for exclusive, Node.SHARED for shared
      * @return the new node
      */
     private Node addWaiter(Node mode) {
         Node node = new Node(Thread.currentThread(), mode);
         // Try the fast path of enq; backup to full enq on failure
+        // 更快的入队方式，如果失败再采用较慢的标准入队方式enq
         Node pred = tail;
         if (pred != null) {
             node.prev = pred;
@@ -624,6 +628,7 @@ public abstract class AbstractQueuedSynchronizer
      *
      * @param node the node
      */
+    // 把node设置为新的头，老的头出队
     private void setHead(Node node) {
         head = node;
         node.thread = null;
@@ -854,6 +859,7 @@ public abstract class AbstractQueuedSynchronizer
      * @param arg the acquire argument
      * @return {@code true} if interrupted while waiting
      */
+    // 节点获得资源才能返回否则一直自旋，中断该线程不会实时响应，但是如果被中断过会返回true，否则返回false
     final boolean acquireQueued(final Node node, int arg) {
         boolean failed = true;
         try {
@@ -1189,11 +1195,15 @@ public abstract class AbstractQueuedSynchronizer
      * repeatedly blocking and unblocking, invoking {@link
      * #tryAcquire} until success.  This method can be used
      * to implement method {@link Lock#lock}.
-     *
+     *在独占模式中获得，忽略中断。
+     * 通过调用至少一次 tryAcquire(int)实施成功，返回。
+     * 否则，线程队列，可能重复查封和解封，
+     * 调用 tryAcquire(int)直到成功。这种方法可以用来实现方法 Lock.lock()。
      * @param arg the acquire argument.  This value is conveyed to
      *        {@link #tryAcquire} but is otherwise uninterpreted and
      *        can represent anything you like.
      */
+    //独占
     public final void acquire(int arg) {
         if (!tryAcquire(arg) &&
             acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
